@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar tooltips de Bootstrap
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
@@ -9,12 +9,25 @@ document.addEventListener('DOMContentLoaded', function() {
     let savedConfigs = JSON.parse(localStorage.getItem('savedConfigs')) || [];
     let currentChapters = [];
     
-    // Actualizar valores de los sliders
+    // Obtener elementos del DOM
+    const promptNameInput = document.getElementById('promptName');
+    const toneSelect = document.getElementById('toneSelect');
+    const otherToneContainer = document.getElementById('otherToneContainer');
+    const otherToneInput = document.getElementById('otherToneInput');
     const temperatureSlider = document.getElementById('temperatureSlider');
     const temperatureValue = document.getElementById('temperatureValue');
     const topPSlider = document.getElementById('topPSlider');
     const topPValue = document.getElementById('topPValue');
     
+    // Event listeners
+    toneSelect.addEventListener('change', function() {
+        if (this.value === 'other') {
+            otherToneContainer.style.display = 'block';
+        } else {
+            otherToneContainer.style.display = 'none';
+        }
+    });
+
     temperatureSlider.addEventListener('input', function() {
         temperatureValue.textContent = 'Valor: ' + this.value;
     });
@@ -23,34 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
         topPValue.textContent = 'Valor: ' + this.value;
     });
     
-    // Selector de modelo
-    const modelButtons = document.querySelectorAll('.model-btn');
-    modelButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            modelButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-    
-    // Gestión de capítulos
     document.getElementById('addChapterBtn').addEventListener('click', addChapter);
-    
-    // Guardar configuración
     document.getElementById('saveConfig').addEventListener('click', saveConfiguration);
-    
-    // Resetear configuración
     document.getElementById('resetConfig').addEventListener('click', resetConfiguration);
-    
-    // Generar prompt
     document.getElementById('generatePromptBtn').addEventListener('click', generatePrompt);
-    
-    // Copiar prompt
     document.getElementById('copyPromptBtn').addEventListener('click', copyPrompt);
-    
-    // Evento para el botón de guardar prompt (descarga el archivo de texto)
     document.getElementById('savePromptBtn').addEventListener('click', savePrompt);
-
-    // Presets
     document.getElementById('presetSelect').addEventListener('change', applyPreset);
     
     // Cargar configuraciones guardadas al iniciar
@@ -60,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function addChapter() {
         const chapterList = document.getElementById('chapterList');
         const chapterCount = chapterList.children.length + 1;
-        
         const chapterId = 'chapter-' + Date.now();
         
         const newChapter = document.createElement('div');
@@ -87,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 placeholder="Objetivos específicos de este capítulo..." 
                 onchange="updateChapterContent('${chapterId}', this.value)"></textarea>
         `;
-        
         chapterList.appendChild(newChapter);
         currentChapters.push({
             id: chapterId,
@@ -103,27 +92,25 @@ document.addEventListener('DOMContentLoaded', function() {
             currentChapters = currentChapters.filter(ch => ch.id !== chapterId);
             renumberChapters();
         }
-    }
+    };
     
     window.moveChapterUp = function(chapterId) {
         const chapterElement = document.getElementById(chapterId);
         const prevElement = chapterElement.previousElementSibling;
-        
         if (prevElement) {
             chapterElement.parentNode.insertBefore(chapterElement, prevElement);
             renumberChapters();
         }
-    }
+    };
     
     window.moveChapterDown = function(chapterId) {
         const chapterElement = document.getElementById(chapterId);
         const nextElement = chapterElement.nextElementSibling;
-        
         if (nextElement) {
             chapterElement.parentNode.insertBefore(nextElement, chapterElement);
             renumberChapters();
         }
-    }
+    };
     
     function renumberChapters() {
         const chapters = document.querySelectorAll('.chapter-item');
@@ -140,31 +127,33 @@ document.addEventListener('DOMContentLoaded', function() {
         if (chapter) {
             chapter.title = title;
         }
-    }
+    };
     
     window.updateChapterContent = function(chapterId, content) {
         const chapter = currentChapters.find(ch => ch.id === chapterId);
         if (chapter) {
             chapter.content = content;
         }
-    }
+    };
     
     function saveConfiguration() {
-        const configName = document.getElementById('promptName').value || 'Configuración sin nombre';
+        const configName = promptNameInput.value || 'Configuración sin nombre';
         const configDescription = document.getElementById('promptDescription').value;
-        
+        const currentTone = toneSelect.value === 'other' ? otherToneInput.value : toneSelect.value;
+    
         const config = {
             id: Date.now(),
             name: configName,
             description: configDescription,
             role: document.getElementById('roleInput').value,
-            tone: document.getElementById('toneSelect').value,
+            tone: currentTone,
             objective: document.getElementById('objectiveInput').value,
             scope: document.getElementById('scopeInput').value,
+            sequentiality: document.getElementById('sequentialityInput').value,
             format: document.getElementById('formatInput').value,
-            temperature: document.getElementById('temperatureSlider').value,
+            temperature: temperatureSlider.value,
             seed: document.getElementById('seedInput').value,
-            topP: document.getElementById('topPSlider').value,
+            topP: topPSlider.value,
             maxTokens: document.getElementById('maxTokensInput').value,
             globalTitle: document.getElementById('globalAnalysisTitle').value,
             synthesisFocus: document.getElementById('synthesisFocus').value,
@@ -176,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
         savedConfigs.push(config);
         
         localStorage.setItem('savedConfigs', JSON.stringify(savedConfigs));
-        
         showToast('Configuración guardada correctamente', 'success');
         loadSavedConfigs();
     }
@@ -188,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
         configList.innerHTML = '';
         
         if (savedConfigs.length === 0) {
-            configList.innerHTML = '<p class="text-center">No hay configuraciones guardadas</p>';
+            configList.innerHTML = '<p class="text-center">No hay configuraciones guardadas.</p>';
             return;
         }
         
@@ -215,35 +203,40 @@ document.addEventListener('DOMContentLoaded', function() {
         const config = savedConfigs.find(c => c.id === configId);
         if (!config) return;
         
-        document.getElementById('promptName').value = config.name;
+        promptNameInput.value = config.name;
         document.getElementById('promptDescription').value = config.description || '';
         document.getElementById('roleInput').value = config.role || '';
-        document.getElementById('toneSelect').value = config.tone || 'profesional';
+        toneSelect.value = config.tone;
+        if (toneSelect.value !== config.tone) {
+            toneSelect.value = 'other';
+            otherToneContainer.style.display = 'block';
+            otherToneInput.value = config.tone;
+        } else {
+            otherToneContainer.style.display = 'none';
+        }
         document.getElementById('objectiveInput').value = config.objective || '';
         document.getElementById('scopeInput').value = config.scope || '';
+        document.getElementById('sequentialityInput').value = config.sequentiality || '';
         document.getElementById('formatInput').value = config.format || '';
-        document.getElementById('temperatureSlider').value = config.temperature || 0.7;
+        temperatureSlider.value = config.temperature || 0.7;
         document.getElementById('seedInput').value = config.seed || '';
-        document.getElementById('topPSlider').value = config.topP || 0.9;
+        topPSlider.value = config.topP || 0.9;
         document.getElementById('maxTokensInput').value = config.maxTokens || 500;
         document.getElementById('globalAnalysisTitle').value = config.globalTitle || '';
         document.getElementById('synthesisFocus').value = config.synthesisFocus || '';
         
-        // Actualizar valores de los sliders
-        document.getElementById('temperatureValue').textContent = 'Valor: ' + (config.temperature || 0.7);
-        document.getElementById('topPValue').textContent = 'Valor: ' + (config.topP || 0.9);
+        temperatureValue.textContent = 'Valor: ' + (config.temperature || 0.7);
+        topPValue.textContent = 'Valor: ' + (config.topP || 0.9);
         
-        // Cargar capítulos
         currentChapters = config.chapters || [];
         renderChapters();
         
         showToast('Configuración cargada correctamente', 'success');
-    }
+    };
     
     function renderChapters() {
         const chapterList = document.getElementById('chapterList');
         chapterList.innerHTML = '';
-        
         currentChapters.forEach((chapter, index) => {
             const newChapter = document.createElement('div');
             newChapter.className = 'chapter-item';
@@ -269,7 +262,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     placeholder="Objetivos específicos de este capítulo..." 
                     onchange="updateChapterContent('${chapter.id}', this.value)">${chapter.content || ''}</textarea>
             `;
-            
             chapterList.appendChild(newChapter);
         });
     }
@@ -310,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteConfirmModal.hide();
             modal.remove();
         });
-    }
+    };
     
     function resetConfiguration() {
         const modal = document.createElement('div');
@@ -341,25 +333,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
         const confirmResetBtn = document.getElementById('confirmResetBtn');
         confirmResetBtn.addEventListener('click', function() {
-            document.getElementById('promptName').value = '';
+            promptNameInput.value = '';
             document.getElementById('promptDescription').value = '';
             document.getElementById('roleInput').value = '';
-            document.getElementById('toneSelect').value = 'profesional';
+            toneSelect.value = 'profesional';
+            otherToneContainer.style.display = 'none';
+            otherToneInput.value = '';
             document.getElementById('objectiveInput').value = '';
             document.getElementById('scopeInput').value = '';
+            document.getElementById('sequentialityInput').value = '';
             document.getElementById('formatInput').value = '';
-            document.getElementById('temperatureSlider').value = 0.7;
+            temperatureSlider.value = 0.7;
             document.getElementById('seedInput').value = '';
-            document.getElementById('topPSlider').value = 0.9;
+            topPSlider.value = 0.9;
             document.getElementById('maxTokensInput').value = 500;
             document.getElementById('globalAnalysisTitle').value = '';
             document.getElementById('synthesisFocus').value = '';
             
-            // Actualizar valores de los sliders
-            document.getElementById('temperatureValue').textContent = 'Valor: 0.7';
-            document.getElementById('topPValue').textContent = 'Valor: 0.9';
+            temperatureValue.textContent = 'Valor: 0.7';
+            topPValue.textContent = 'Valor: 0.9';
             
-            // Limpiar capítulos
             currentChapters = [];
             document.getElementById('chapterList').innerHTML = '';
             
@@ -367,37 +360,37 @@ document.addEventListener('DOMContentLoaded', function() {
             resetConfirmModal.hide();
             modal.remove();
         });
-    }
+    };
     
     function applyPreset() {
         const preset = document.getElementById('presetSelect').value;
+        otherToneContainer.style.display = 'none';
         
         switch(preset) {
             case 'technical':
-                document.getElementById('temperatureSlider').value = 0.1;
-                document.getElementById('topPSlider').value = 0.3;
-                document.getElementById('toneSelect').value = 'técnico';
-                document.getElementById('temperatureValue').textContent = 'Valor: 0.1';
-                document.getElementById('topPValue').textContent = 'Valor: 0.3';
+                temperatureSlider.value = 0.1;
+                topPSlider.value = 0.3;
+                toneSelect.value = 'técnico';
+                temperatureValue.textContent = 'Valor: 0.1';
+                topPValue.textContent = 'Valor: 0.3';
                 break;
                 
             case 'creative':
-                document.getElementById('temperatureSlider').value = 0.9;
-                document.getElementById('topPSlider').value = 1.0;
-                document.getElementById('toneSelect').value = 'creativo';
-                document.getElementById('temperatureValue').textContent = 'Valor: 0.9';
-                document.getElementById('topPValue').textContent = 'Valor: 1.0';
+                temperatureSlider.value = 0.9;
+                topPSlider.value = 1.0;
+                toneSelect.value = 'creativo';
+                temperatureValue.textContent = 'Valor: 0.9';
+                topPValue.textContent = 'Valor: 1.0';
                 break;
                 
             case 'research':
-                document.getElementById('temperatureSlider').value = 0.3;
-                document.getElementById('topPSlider').value = 0.5;
-                document.getElementById('toneSelect').value = 'académico';
-                document.getElementById('temperatureValue').textContent = 'Valor: 0.3';
-                document.getElementById('topPValue').textContent = 'Valor: 0.5';
+                temperatureSlider.value = 0.3;
+                topPSlider.value = 0.5;
+                toneSelect.value = 'académico';
+                temperatureValue.textContent = 'Valor: 0.3';
+                topPValue.textContent = 'Valor: 0.5';
                 break;
             default:
-                // No hacer nada si no se selecciona un preset
                 break;
         }
     }
@@ -405,19 +398,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function generatePrompt() {
         const selectedModel = document.querySelector('.model-btn.active').dataset.model;
         const role = document.getElementById('roleInput').value;
-        const tone = document.getElementById('toneSelect').value;
+        const tone = toneSelect.value === 'other' ? otherToneInput.value : toneSelect.value;
         const objective = document.getElementById('objectiveInput').value;
         const scope = document.getElementById('scopeInput').value;
+        const sequentiality = document.getElementById('sequentialityInput').value;
         const format = document.getElementById('formatInput').value;
-        const temperature = document.getElementById('temperatureSlider').value;
+        const temperature = temperatureSlider.value;
         const seed = document.getElementById('seedInput').value;
-        const topP = document.getElementById('topPSlider').value;
+        const topP = topPSlider.value;
         const maxTokens = document.getElementById('maxTokensInput').value;
         
         let promptText = '';
         
         if (currentChapters.length > 0 && document.getElementById('autoSynthesisCheck').checked) {
-            // Generar prompt para análisis por capítulos
             const globalTitle = document.getElementById('globalAnalysisTitle').value;
             const synthesisFocus = document.getElementById('synthesisFocus').value;
             
@@ -438,6 +431,7 @@ INSTRUCCIONES:
 1. Analiza las interconexiones, tensiones y oportunidades que surgen de la integración de todos los resúmenes.
 2. No introduzcas nueva información factual que no esté contenida en los resúmenes proporcionados.
 3. Las recomendaciones deben ser accionables, específicas y derivadas directamente del análisis integrado.
+${sequentiality ? '\nSECUENCIALIDAD: ' + sequentiality : ''}
 
 TONO: ${tone}.
 FORMATO: ${format}.
@@ -449,12 +443,12 @@ PARÁMETROS TÉCNICOS:
 - Max Tokens: ${maxTokens}`;
 
         } else {
-            // Generar prompt estándar
             promptText = `ROL: ${role}
 
 OBJETIVO: ${objective}
 
 ALCANCE: ${scope}
+${sequentiality ? '\nSECUENCIALIDAD: ' + sequentiality : ''}
 
 FORMATO DE SALIDA: ${format}
 
@@ -470,8 +464,6 @@ PARÁMETROS TÉCNICOS:
         const generatedPrompt = document.getElementById('generatedPrompt');
         generatedPrompt.textContent = promptText;
         generatedPrompt.classList.remove('d-none');
-        
-        // Desplazarse hacia el prompt generado
         generatedPrompt.scrollIntoView({ behavior: 'smooth' });
         showToast('Prompt generado', 'info');
     }
@@ -487,17 +479,20 @@ PARÁMETROS TÉCNICOS:
     }
 
     function savePrompt() {
+        const promptName = promptNameInput.value || 'Prompt';
+        const sanitizedName = promptName.trim().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-');
+        const fileName = `${sanitizedName}.txt`;
         const promptText = document.getElementById('generatedPrompt').textContent;
         const blob = new Blob([promptText], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'prompt.txt';
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast('Prompt guardado como prompt.txt', 'success');
+        showToast(`Prompt guardado como ${fileName}`, 'success');
     }
     
     function showToast(message, type) {
