@@ -76,6 +76,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <textarea class="form-control form-control-sm" rows="3" 
                 placeholder="Objetivos específicos de este capítulo..." 
                 onchange="updateChapterContent('${chapterId}', this.value)"></textarea>
+            <div class="d-flex gap-2 mt-2">
+                <button class="btn btn-sm btn-info text-white" onclick="generateChapterReportPrompt('${chapterId}')">
+                    <i class="fas fa-file-alt me-1"></i>Generar Informe
+                </button>
+                <button class="btn btn-sm btn-success text-white" onclick="generateChapterSummaryPrompt('${chapterId}')">
+                    <i class="fas fa-file-export me-1"></i>Generar Resumen
+                </button>
+            </div>
         `;
         chapterList.appendChild(newChapter);
         currentChapters.push({
@@ -85,6 +93,67 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    window.generateChapterReportPrompt = function(chapterId) {
+        const chapter = currentChapters.find(ch => ch.id === chapterId);
+        if (!chapter) return;
+        
+        const promptText = `ROL: Experto en análisis de datos, con habilidades para generar informes detallados.
+
+OBJETIVO: Analizar el siguiente objetivo de investigación del capítulo "${chapter.title || 'Sin título'}" y generar un informe técnico exhaustivo que incluya:
+1.  **Análisis de Datos**: Basado en el contenido proporcionado.
+2.  **Gráficos y Tablas**: Genera la información en formatos de tabla y describe gráficos representativos de los datos.
+3.  **Conclusiones Específicas**: Resumen de los hallazgos clave.
+
+DOCUMENTACIÓN DE BASE:
+"${chapter.content || 'Sin contenido'}"
+
+INSTRUCCIONES:
+-   El informe debe ser completo, estructurado y utilizar un lenguaje técnico apropiado.
+-   No te inventes datos, utiliza el contenido proporcionado como única fuente de información.
+
+TONO: técnico.
+FORMATO: Informe en formato Markdown con encabezados, listas y tablas.
+
+PARÁMETROS TÉCNICOS:
+- Temperature: ${temperatureSlider.value}
+- Top P: ${topPSlider.value}
+- Max Tokens: ${document.getElementById('maxTokensInput').value}`;
+
+        document.getElementById('generatedPrompt').textContent = promptText;
+        document.getElementById('generatedPrompt').classList.remove('d-none');
+        document.getElementById('generatedPrompt').scrollIntoView({ behavior: 'smooth' });
+        showToast('Prompt para informe de capítulo generado', 'info');
+    }
+
+    window.generateChapterSummaryPrompt = function(chapterId) {
+        const chapter = currentChapters.find(ch => ch.id === chapterId);
+        if (!chapter) return;
+
+        const promptText = `ROL: Experto en síntesis de información y extracción de ideas clave.
+
+OBJETIVO: Analizar el contenido del capítulo "${chapter.title || 'Sin título'}" y generar un resumen ejecutivo conciso, destacando las ideas clave y una conclusión del capítulo.
+
+DOCUMENTACIÓN DE BASE:
+"${chapter.content || 'Sin contenido'}"
+
+INSTRUCCIONES:
+-   El resumen debe ser breve y al punto.
+-   Utiliza un lenguaje claro y directo, ideal para un lector que necesita entender rápidamente el contenido.
+
+TONO: profesional.
+FORMATO: Resumen Ejecutivo en texto plano.
+
+PARÁMETROS TÉCNICOS:
+- Temperature: ${temperatureSlider.value}
+- Top P: ${topPSlider.value}
+- Max Tokens: ${document.getElementById('maxTokensInput').value}`;
+    
+        document.getElementById('generatedPrompt').textContent = promptText;
+        document.getElementById('generatedPrompt').classList.remove('d-none');
+        document.getElementById('generatedPrompt').scrollIntoView({ behavior: 'smooth' });
+        showToast('Prompt para resumen de capítulo generado', 'info');
+    }
+
     window.removeChapter = function(chapterId) {
         const chapterElement = document.getElementById(chapterId);
         if (chapterElement) {
@@ -223,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
         topPSlider.value = config.topP || 0.9;
         document.getElementById('maxTokensInput').value = config.maxTokens || 500;
         document.getElementById('globalAnalysisTitle').value = config.globalTitle || '';
-        document.getElementById('synthesisFocus').value = config.synthesisFocus || '';
+        synthesisFocusInput.value = config.synthesisFocus || '';
         
         temperatureValue.textContent = 'Valor: ' + (config.temperature || 0.7);
         topPValue.textContent = 'Valor: ' + (config.topP || 0.9);
@@ -261,78 +330,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 <textarea class="form-control form-control-sm" rows="3" 
                     placeholder="Objetivos específicos de este capítulo..." 
                     onchange="updateChapterContent('${chapter.id}', this.value)">${chapter.content || ''}</textarea>
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-info text-white" onclick="generateChapterReportPrompt('${chapter.id}')">
+                        <i class="fas fa-file-alt me-1"></i>Generar Informe
+                    </button>
+                    <button class="btn btn-sm btn-success text-white" onclick="generateChapterSummaryPrompt('${chapter.id}')">
+                        <i class="fas fa-file-export me-1"></i>Generar Resumen
+                    </button>
+                </div>
             `;
             chapterList.appendChild(newChapter);
         });
     }
     
-    window.deleteConfiguration = function(configName) {
-        const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.id = 'deleteConfirmModal';
-        modal.setAttribute('tabindex', '-1');
-        modal.setAttribute('aria-hidden', 'true');
-        modal.innerHTML = `
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirmar Eliminación</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        ¿Estás seguro de que deseas eliminar la configuración "${configName}"?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        const deleteConfirmModal = new bootstrap.Modal(modal);
-        deleteConfirmModal.show();
-    
+    function deleteConfiguration(configName) {
+        const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        document.getElementById('configNameToDelete').textContent = configName;
+        modal.show();
+
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        confirmDeleteBtn.addEventListener('click', function() {
+        const confirmHandler = function() {
             savedConfigs = savedConfigs.filter(c => c.name !== configName);
             localStorage.setItem('savedConfigs', JSON.stringify(savedConfigs));
             loadSavedConfigs();
             showToast('Configuración eliminada', 'info');
-            deleteConfirmModal.hide();
-            modal.remove();
-        });
+            modal.hide();
+            confirmDeleteBtn.removeEventListener('click', confirmHandler);
+        };
+        confirmDeleteBtn.addEventListener('click', confirmHandler);
     };
     
     function resetConfiguration() {
-        const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.id = 'resetConfirmModal';
-        modal.setAttribute('tabindex', '-1');
-        modal.setAttribute('aria-hidden', 'true');
-        modal.innerHTML = `
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirmar Reinicio</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        ¿Estás seguro de que deseas restablecer todos los campos?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-danger" id="confirmResetBtn">Restablecer</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        const resetConfirmModal = new bootstrap.Modal(modal);
-        resetConfirmModal.show();
-    
+        const modal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
+        modal.show();
+
         const confirmResetBtn = document.getElementById('confirmResetBtn');
-        confirmResetBtn.addEventListener('click', function() {
+        const confirmHandler = function() {
             promptNameInput.value = '';
             document.getElementById('promptDescription').value = '';
             document.getElementById('roleInput').value = '';
@@ -348,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
             topPSlider.value = 0.9;
             document.getElementById('maxTokensInput').value = 500;
             document.getElementById('globalAnalysisTitle').value = '';
-            document.getElementById('synthesisFocus').value = '';
+            synthesisFocusInput.value = '';
             
             temperatureValue.textContent = 'Valor: 0.7';
             topPValue.textContent = 'Valor: 0.9';
@@ -357,9 +390,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('chapterList').innerHTML = '';
             
             showToast('Campos restablecidos', 'info');
-            resetConfirmModal.hide();
-            modal.remove();
-        });
+            modal.hide();
+            confirmResetBtn.removeEventListener('click', confirmHandler);
+        };
+        confirmResetBtn.addEventListener('click', confirmHandler);
     };
     
     function applyPreset() {
@@ -410,7 +444,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let promptText = '';
         
-        if (currentChapters.length > 0 && document.getElementById('autoSynthesisCheck').checked) {
+        const isAdvancedTabActive = document.getElementById('advanced-tab').classList.contains('active');
+
+        if (isAdvancedTabActive && currentChapters.length > 0 && document.getElementById('autoSynthesisCheck').checked) {
             const globalTitle = document.getElementById('globalAnalysisTitle').value;
             const synthesisFocus = document.getElementById('synthesisFocus').value;
             
@@ -523,4 +559,6 @@ PARÁMETROS TÉCNICOS:
     window.updateChapterContent = updateChapterContent;
     window.loadConfiguration = loadConfiguration;
     window.deleteConfiguration = deleteConfiguration;
+    window.generateChapterReportPrompt = generateChapterReportPrompt;
+    window.generateChapterSummaryPrompt = generateChapterSummaryPrompt;
 });

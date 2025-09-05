@@ -22,148 +22,168 @@
             </div>
         </div>
 
-        <div class="config-section">
-            <h4><i class="fas fa-sliders-h me-2"></i>Configuración Rápida</h4>
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label class="form-label">Nombre del Prompt</label>
-                    <input type="text" class="form-control" id="promptName" placeholder="Ej: Análisis de mercado financiero">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Seleccionar preset</label>
-                    <select class="form-select" id="presetSelect">
-                        <option value="">Mi configuración personalizada...</option>
-                        <option value="technical">Análisis Técnico</option>
-                        <option value="creative">Contenido Creativo</option>
-                        <option value="research">Investigación Académica</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Descripción del Prompt</label>
-                <textarea class="form-control" id="promptDescription" rows="2" placeholder="Describe para qué usarás este prompt..."></textarea>
-            </div>
-            
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary" id="saveConfig"><i class="fas fa-save me-2"></i>Guardar Config</button>
-                <button class="btn btn-outline-secondary" id="resetConfig"><i class="fas fa-redo me-2"></i>Resetear</button>
-            </div>
-        </div>
+        <ul class="nav nav-tabs mt-4">
+            <li class="nav-item">
+                <a class="nav-link active" id="basic-tab" data-bs-toggle="tab" href="#basic" role="tab" aria-controls="basic" aria-selected="true">Configuración Básica</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="advanced-tab" data-bs-toggle="tab" href="#advanced" role="tab" aria-controls="advanced" aria-selected="false">Análisis Avanzado</a>
+            </li>
+        </ul>
 
-        <div class="config-section">
-            <h4><i class="fas fa-pencil-ruler me-2"></i>Estructura del Prompt</h4>
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label class="form-label">Rol <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Define la personalidad o el perfil que la IA debe adoptar para generar la respuesta. Un buen rol guía el tono y la calidad de la información."></i></label>
-                    <input type="text" class="form-control" id="roleInput" placeholder="Ej: Experto en marketing digital...">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Tono <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Elige la actitud y el estilo de la respuesta. El tono puede ser formal, casual, cómico, etc."></i></label>
-                    <select class="form-select" id="toneSelect">
-                        <option value="profesional">Profesional</option>
-                        <option value="académico">Académico</option>
-                        <option value="creativo">Creativo</option>
-                        <option value="técnico">Técnico</option>
-                        <option value="divulgativo">Divulgativo</option>
-                        <option value="other">Otra...</option>
-                    </select>
-                </div>
-            </div>
-            
-            <!-- Nuevo campo de texto para tono personalizado, inicialmente oculto -->
-            <div class="mb-3" id="otherToneContainer" style="display: none;">
-                <label class="form-label">Tono Personalizado</label>
-                <input type="text" class="form-control" id="otherToneInput" placeholder="Ej: informal, casual y dubitativo">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Objetivo <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Describe qué quieres lograr exactamente con este prompt. Un objetivo claro ayuda a la IA a no desviarse del tema."></i></label>
-                <textarea class="form-control" id="objectiveInput" rows="2" placeholder="Describe qué quieres lograr con este prompt..."></textarea>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Alcance <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Establece los límites y el contexto del trabajo. Define qué información debe ser incluida y cuál debe ser omitida."></i></label>
-                <textarea class="form-control" id="scopeInput" rows="2" placeholder="Define el contexto y límites del trabajo..."></textarea>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Instrucciones de Secuencialidad <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Instrucciones para la IA para pausar o realizar el trabajo en partes."></i></label>
-                <textarea class="form-control" id="sequentialityInput" rows="2" placeholder="Ej: Genera solo el primer capítulo y espera por mi confirmación para continuar..."></textarea>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Formato de Salida <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Especifica cómo quieres que se presente la respuesta (ej. 'tabla', 'lista de viñetas', 'ensayo de 500 palabras')."></i></label>
-                <textarea class="form-control" id="formatInput" rows="2" placeholder="Especifica cómo quieres que se presente la respuesta..."></textarea>
-            </div>
-        </div>
-
-        <div class="config-section">
-            <h4><i class="fas fa-cogs me-2"></i>Parámetros Técnicos</h4>
-            <div class="row">
-                <div class="col-md-6 col-lg-3">
-                    <div class="param-control">
-                        <label class="form-label">Temperatura <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Controla la creatividad (0 = determinista, 1 = muy creativo)"></i></label>
-                        <input type="range" class="form-range" id="temperatureSlider" min="0" max="1" step="0.1" value="0.7">
-                        <div class="param-help" id="temperatureValue">Valor: 0.7</div>
+        <div class="tab-content" id="myTabContent">
+            <!-- PESTAÑA DE CONFIGURACIÓN BÁSICA -->
+            <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                <div class="config-section">
+                    <h4><i class="fas fa-sliders-h me-2"></i>Configuración Rápida</h4>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre del Prompt</label>
+                            <input type="text" class="form-control" id="promptName" placeholder="Ej: Análisis de mercado financiero">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Seleccionar preset</label>
+                            <select class="form-select" id="presetSelect">
+                                <option value="">Mi configuración personalizada...</option>
+                                <option value="technical">Análisis Técnico</option>
+                                <option value="creative">Contenido Creativo</option>
+                                <option value="research">Investigación Académica</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Descripción del Prompt</label>
+                        <textarea class="form-control" id="promptDescription" rows="2" placeholder="Describe para qué usarás este prompt..."></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" id="saveConfig"><i class="fas fa-save me-2"></i>Guardar Config</button>
+                        <button class="btn btn-outline-secondary" id="resetConfig"><i class="fas fa-redo me-2"></i>Resetear</button>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="param-control">
-                        <label class="form-label">Seed <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Semilla para reproducibilidad (dejar en blanco para aleatorio)"></i></label>
-                        <input type="number" class="form-control" id="seedInput" placeholder="42">
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="param-control">
-                        <label class="form-label">Top P <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Diversidad de vocabulario (0.1 = conservador, 1 = diverso)"></i></label>
-                        <input type="range" class="form-range" id="topPSlider" min="0.1" max="1" step="0.1" value="0.9">
-                        <div class="param-help" id="topPValue">Valor: 0.9</div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="param-control">
-                        <label class="form-label">Max Tokens <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Longitud máxima de la respuesta"></i></label>
-                        <input type="number" class="form-control" id="maxTokensInput" value="500">
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="config-section">
-            <h4><i class="fas fa-project-diagram me-2"></i>Análisis por Capítulos</h4>
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>Utilice esta sección para crear análisis complejos divididos en capítulos con síntesis final.
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Título del Análisis Global</label>
-                <input type="text" class="form-control" id="globalAnalysisTitle" placeholder="Ej: Análisis del mercado de vivienda 2023">
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Enfoque Particular para la Síntesis Final</label>
-                <input type="text" class="form-control" id="synthesisFocus" placeholder="Ej: Perspectiva de rentabilidad para inversores">
-            </div>
-            
-            <h5 class="mt-4">Capítulos</h5>
-            <div id="chapterList" class="chapter-list">
-                <!-- Los capítulos se agregarán aquí dinámicamente -->
-            </div>
-            
-            <button class="btn btn-outline-primary mt-3" id="addChapterBtn"><i class="fas fa-plus me-2"></i>Agregar Capítulo</button>
-            
-            <div class="form-check mt-3">
-                <input class="form-check-input" type="checkbox" id="autoSynthesisCheck" checked>
-                <label class="form-check-label" for="autoSynthesisCheck">Generar automáticamente prompt de síntesis final</label>
-            </div>
-        </div>
+                <div class="config-section">
+                    <h4><i class="fas fa-pencil-ruler me-2"></i>Estructura del Prompt</h4>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Rol <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Define la personalidad o el perfil que la IA debe adoptar para generar la respuesta. Un buen rol guía el tono y la calidad de la información."></i></label>
+                            <input type="text" class="form-control" id="roleInput" placeholder="Ej: Experto en marketing digital...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tono <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Elige la actitud y el estilo de la respuesta. El tono puede ser formal, casual, cómico, etc."></i></label>
+                            <select class="form-select" id="toneSelect">
+                                <option value="profesional">Profesional</option>
+                                <option value="académico">Académico</option>
+                                <option value="creativo">Creativo</option>
+                                <option value="técnico">Técnico</option>
+                                <option value="divulgativo">Divulgativo</option>
+                                <option value="other">Otra...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Nuevo campo de texto para tono personalizado, inicialmente oculto -->
+                    <div class="mb-3" id="otherToneContainer" style="display: none;">
+                        <label class="form-label">Tono Personalizado</label>
+                        <input type="text" class="form-control" id="otherToneInput" placeholder="Ej: informal, casual y dubitativo">
+                    </div>
 
-        <div class="config-section">
-            <h4><i class="fas fa-folder-open me-2"></i>Cargar Prompts</h4>
-            <div id="configList" class="config-list">
-                <!-- Las configuraciones guardadas se cargarán aquí -->
-                <p class="text-center text-muted">Aún no tienes configuraciones guardadas.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Objetivo <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Describe qué quieres lograr exactamente con este prompt. Un objetivo claro ayuda a la IA a no desviarse del tema."></i></label>
+                        <textarea class="form-control" id="objectiveInput" rows="2" placeholder="Describe qué quieres lograr con este prompt..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Alcance <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Establece los límites y el contexto del trabajo. Define qué información debe ser incluida y cuál debe ser omitida."></i></label>
+                        <textarea class="form-control" id="scopeInput" rows="2" placeholder="Define el contexto y límites del trabajo..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Formato de Salida <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Especifica cómo quieres que se presente la respuesta (ej. 'tabla', 'lista de viñetas', 'ensayo de 500 palabras')."></i></label>
+                        <textarea class="form-control" id="formatInput" rows="2" placeholder="Especifica cómo quieres que se presente la respuesta..."></textarea>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h4><i class="fas fa-cogs me-2"></i>Parámetros Técnicos</h4>
+                    <div class="row">
+                        <div class="col-md-6 col-lg-3">
+                            <div class="param-control">
+                                <label class="form-label">Temperatura <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Controla la creatividad (0 = determinista, 1 = muy creativo)"></i></label>
+                                <input type="range" class="form-range" id="temperatureSlider" min="0" max="1" step="0.1" value="0.7">
+                                <div class="param-help" id="temperatureValue">Valor: 0.7</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="param-control">
+                                <label class="form-label">Seed <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Semilla para reproducibilidad (dejar en blanco para aleatorio)"></i></label>
+                                <input type="number" class="form-control" id="seedInput" placeholder="42">
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="param-control">
+                                <label class="form-label">Top P <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Diversidad de vocabulario (0.1 = conservador, 1 = diverso)"></i></label>
+                                <input type="range" class="form-range" id="topPSlider" min="0.1" max="1" step="0.1" value="0.9">
+                                <div class="param-help" id="topPValue">Valor: 0.9</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="param-control">
+                                <label class="form-label">Max Tokens <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Longitud máxima de la respuesta"></i></label>
+                                <input type="number" class="form-control" id="maxTokensInput" value="500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h4><i class="fas fa-folder-open me-2"></i>Cargar Prompts</h4>
+                    <div id="configList" class="config-list">
+                        <!-- Las configuraciones guardadas se cargarán aquí -->
+                        <p class="text-center text-muted">Aún no tienes configuraciones guardadas.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA DE ANÁLISIS AVANZADO -->
+            <div class="tab-pane fade" id="advanced" role="tabpanel" aria-labelledby="advanced-tab">
+                <div class="config-section">
+                    <h4><i class="fas fa-project-diagram me-2"></i>Análisis por Capítulos</h4>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Utilice esta sección para crear análisis complejos divididos en capítulos con síntesis final.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Título del Análisis Global</label>
+                        <input type="text" class="form-control" id="globalAnalysisTitle" placeholder="Ej: Análisis del mercado de vivienda 2023">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Enfoque Particular para la Síntesis Final</label>
+                        <input type="text" class="form-control" id="synthesisFocus" placeholder="Ej: Perspectiva de rentabilidad para inversores">
+                    </div>
+                    
+                    <h5 class="mt-4">Capítulos</h5>
+                    <div id="chapterList" class="chapter-list">
+                        <!-- Los capítulos se agregarán aquí dinámicamente -->
+                    </div>
+                    
+                    <button class="btn btn-outline-primary mt-3" id="addChapterBtn"><i class="fas fa-plus me-2"></i>Agregar Capítulo</button>
+                    
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="autoSynthesisCheck" checked>
+                        <label class="form-check-label" for="autoSynthesisCheck">Generar automáticamente prompt de síntesis final</label>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h4><i class="fas fa-list-ol me-2"></i>Instrucciones de Secuencialidad</h4>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Instrucciones para la IA para pausar o realizar el trabajo en partes.
+                    </div>
+                    <textarea class="form-control" id="sequentialityInput" rows="2" placeholder="Ej: Genera solo el primer capítulo y espera por mi confirmación para continuar..."></textarea>
+                </div>
             </div>
         </div>
 
