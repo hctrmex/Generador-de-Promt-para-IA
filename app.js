@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Inicializar tooltips de Bootstrap
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Variables globales
-    let savedConfigs = JSON.parse(localStorage.getItem('savedConfigs')) || [];
     let currentChapters = [];
     
     // Obtener elementos del DOM
@@ -18,7 +17,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const temperatureValue = document.getElementById('temperatureValue');
     const topPSlider = document.getElementById('topPSlider');
     const topPValue = document.getElementById('topPValue');
+    const synthesisFocusInput = document.getElementById('synthesisFocus');
     
+    // Inicializar Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.getFirestore(app);
+    const auth = firebase.getAuth(app);
+    let userId = null;
+    let savedConfigs = [];
+
+    // Autenticar al usuario
+    try {
+        if (initialAuthToken) {
+            await firebase.signInWithCustomToken(auth, initialAuthToken);
+        } else {
+            await firebase.signInAnonymously(auth);
+        }
+    } catch (error) {
+        console.error("Error en la autenticación:", error);
+    }
+    
+    // Esperar a que la autenticación esté lista para obtener el userId
+    firebase.onAuthStateChanged(auth, (user) => {
+        if (user) {
+            userId = user.uid;
+            console.log(`Usuario autenticado con ID: ${userId}`);
+
+            // Configuración de Firestore
+            const promptsCollection = firebase.collection(db, `/artifacts/${appId}/users/${userId}/prompts`);
+
+            // Escuchar cambios en las configuraciones de prompts en tiempo real
+            firebase.onSnapshot(promptsCollection, (snapshot) => {
+                savedConfigs = [];
+                snapshot.forEach((doc) => {
+                    savedConfigs.push({ id: doc.id, ...doc.data() });
+                });
+                loadSavedConfigs();
+            });
+        }
+    });
+
     // Event listeners
     toneSelect.addEventListener('change', function() {
         if (this.value === 'other') {
@@ -43,9 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('copyPromptBtn').addEventListener('click', copyPrompt);
     document.getElementById('savePromptBtn').addEventListener('click', savePrompt);
     document.getElementById('presetSelect').addEventListener('change', applyPreset);
-    
-    // Cargar configuraciones guardadas al iniciar
-    loadSavedConfigs();
     
     // Funciones
     function addChapter() {
@@ -205,13 +240,12 @@ PARÁMETROS TÉCNICOS:
         }
     };
     
-    function saveConfiguration() {
+    async function saveConfiguration() {
         const configName = promptNameInput.value || 'Configuración sin nombre';
         const configDescription = document.getElementById('promptDescription').value;
         const currentTone = toneSelect.value === 'other' ? otherToneInput.value : toneSelect.value;
     
         const config = {
-            id: Date.now(),
             name: configName,
             description: configDescription,
             role: document.getElementById('roleInput').value,
@@ -225,17 +259,18 @@ PARÁMETROS TÉCNICOS:
             topP: topPSlider.value,
             maxTokens: document.getElementById('maxTokensInput').value,
             globalTitle: document.getElementById('globalAnalysisTitle').value,
-            synthesisFocus: document.getElementById('synthesisFocus').value,
+            synthesisFocus: synthesisFocusInput.value,
             chapters: [...currentChapters],
             timestamp: new Date().toISOString()
         };
         
-        savedConfigs = savedConfigs.filter(c => c.name !== config.name);
-        savedConfigs.push(config);
-        
-        localStorage.setItem('savedConfigs', JSON.stringify(savedConfigs));
-        showToast('Configuración guardada correctamente', 'success');
-        loadSavedConfigs();
+        try {
+            await firebase.setDoc(firebase.doc(firebase.collection(db, `/artifacts/${appId}/users/${userId}/prompts`), configName), config);
+            showToast('Configuración guardada correctamente', 'success');
+        } catch (error) {
+            console.error("Error al guardar la configuración:", error);
+            showToast('Error al guardar la configuración', 'danger');
+        }
     }
     
     function loadSavedConfigs() {
@@ -256,10 +291,10 @@ PARÁMETROS TÉCNICOS:
                 <h6>${config.name}</h6>
                 <p class="small">${config.description || 'Sin descripción'}</p>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-primary" onclick="loadConfiguration(${config.id})">
+                    <button class="btn btn-sm btn-primary" onclick="loadConfiguration('${config.id}')">
                         <i class="fas fa-file-import me-1"></i>Cargar
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteConfiguration('${config.name}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteConfiguration('${config.id}')">
                         <i class="fas fa-trash me-1"></i>Eliminar
                     </button>
                 </div>
@@ -343,17 +378,20 @@ PARÁMETROS TÉCNICOS:
         });
     }
     
-    function deleteConfiguration(configName) {
+    async function deleteConfiguration(configId) {
         const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-        document.getElementById('configNameToDelete').textContent = configName;
+        document.getElementById('configNameToDelete').textContent = savedConfigs.find(c => c.id === configId)?.name || '';
         modal.show();
 
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const confirmHandler = function() {
-            savedConfigs = savedConfigs.filter(c => c.name !== configName);
-            localStorage.setItem('savedConfigs', JSON.stringify(savedConfigs));
-            loadSavedConfigs();
-            showToast('Configuración eliminada', 'info');
+        const confirmHandler = async function() {
+            try {
+                await firebase.deleteDoc(firebase.doc(firebase.collection(db, `/artifacts/${appId}/users/${userId}/prompts`), configId));
+                showToast('Configuración eliminada', 'info');
+            } catch (error) {
+                console.error("Error al eliminar la configuración:", error);
+                showToast('Error al eliminar la configuración', 'danger');
+            }
             modal.hide();
             confirmDeleteBtn.removeEventListener('click', confirmHandler);
         };
@@ -448,7 +486,7 @@ PARÁMETROS TÉCNICOS:
 
         if (isAdvancedTabActive && currentChapters.length > 0 && document.getElementById('autoSynthesisCheck').checked) {
             const globalTitle = document.getElementById('globalAnalysisTitle').value;
-            const synthesisFocus = document.getElementById('synthesisFocus').value;
+            const synthesisFocus = synthesisFocusInput.value;
             
             promptText = `ROL: Experto en síntesis de información compleja y generación de insights estratégicos.
 
