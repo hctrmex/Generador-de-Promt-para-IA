@@ -6,21 +6,185 @@
     <title>Generador de Prompts Avanzado</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            color: #333;
+            padding-top: 20px;
+            padding-bottom: 50px;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .model-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .model-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            color: white;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .model-btn.active, .model-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .config-section {
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .param-control {
+            margin-bottom: 15px;
+        }
+
+        .param-help {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .help-icon {
+            color: var(--primary);
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .chapter-list {
+            margin-top: 20px;
+        }
+
+        .chapter-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+            position: relative;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .generated-prompt {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .chapter-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                border-radius: 0;
+            }
+            
+            .config-section {
+                padding: 15px;
+            }
+            
+            .model-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .model-btn {
+                width: 80%;
+            }
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .saved-config {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--success);
+        }
+
+        .config-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
     <div class="container app-container">
         <div class="app-header">
-            <h1><i class="fas fa-magic me-2"></i>Generador de Prompts Avanzado para trabajar con Modelos de Lenguaje Avanzados - LLM - IAs</h1>
-            <p class="mb-0">Crea prompts profesionales con parámetros técnicos optimizados para trabajar con IAs (LLM)</p>
+            <h1><i class="fas fa-magic me-2"></i>Generador de Prompts Avanzado</h1>
+            <p class="mb-0">Crea prompts profesionales con parámetros técnicos optimizados</p>
             
             <div class="model-selector">
                 <div class="model-btn active" data-model="chatgpt"><i class="fab fa-openai me-2"></i>ChatGPT</div>
                 <div class="model-btn" data-model="claude"><i class="fas fa-robot me-2"></i>Claude</div>
                 <div class="model-btn" data-model="gemini"><i class="fab fa-google me-2"></i>Gemini</div>
                 <div class="model-btn" data-model="perplexity"><i class="fas fa-question-circle me-2"></i>Perplexity</div>
- 		<div class="model-btn" data-model="Todas las IAs"><i class="fas fa-question-circle me-2"></i>Todas las IAs</div>
-
             </div>
         </div>
 
@@ -108,38 +272,6 @@
                 </div>
 
                 <div class="config-section">
-                    <h4><i class="fas fa-cogs me-2"></i>Parámetros Técnicos</h4>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3">
-                            <div class="param-control">
-                                <label class="form-label">Temperatura <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Controla la creatividad (0 = determinista, 1 = muy creativo)"></i></label>
-                                <input type="range" class="form-range" id="temperatureSlider" min="0" max="1" step="0.1" value="0.7">
-                                <div class="param-help" id="temperatureValue">Valor: 0.7</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-3">
-                            <div class="param-control">
-                                <label class="form-label">Seed <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Semilla para reproducibilidad (dejar en blanco para aleatorio)"></i></label>
-                                <input type="number" class="form-control" id="seedInput" placeholder="42">
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-3">
-                            <div class="param-control">
-                                <label class="form-label">Top P <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Diversidad de vocabulario (0.1 = conservador, 1 = diverso)"></i></label>
-                                <input type="range" class="form-range" id="topPSlider" min="0.1" max="1" step="0.1" value="0.9">
-                                <div class="param-help" id="topPValue">Valor: 0.9</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-3">
-                            <div class="param-control">
-                                <label class="form-label">Max Tokens <i class="fas fa-question-circle help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Longitud máxima de la respuesta"></i></label>
-                                <input type="number" class="form-control" id="maxTokensInput" value="500">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="config-section">
                     <h4><i class="fas fa-folder-open me-2"></i>Cargar Prompts</h4>
                     <div id="configList" class="config-list">
                         <!-- Las configuraciones guardadas se cargarán aquí -->
@@ -193,7 +325,7 @@
             <button class="btn btn-primary btn-lg" id="generatePromptBtn"><i class="fas fa-bolt me-2"></i>Generar Prompt</button>
             
             <div id="generatedPrompt" class="generated-prompt mt-4 d-none">
-                // El prompt generado aparecerá aquí
+                <!-- El prompt generado aparecerá aquí -->
             </div>
 
             <div class="mt-3">
@@ -243,6 +375,624 @@
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+    
+    <script>
+        // Variables globales de la app, proporcionadas por el entorno de Canvas.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let savedConfigs = [];
+        let currentChapters = [];
+        let db = null;
+        let auth = null;
+        let userId = null;
+
+        // Obtener elementos del DOM
+        const promptNameInput = document.getElementById('promptName');
+        const toneSelect = document.getElementById('toneSelect');
+        const otherToneContainer = document.getElementById('otherToneContainer');
+        const otherToneInput = document.getElementById('otherToneInput');
+        const temperatureSlider = document.getElementById('temperatureSlider');
+        const temperatureValue = document.getElementById('temperatureValue');
+        const topPSlider = document.getElementById('topPSlider');
+        const topPValue = document.getElementById('topPValue');
+        const synthesisFocusInput = document.getElementById('synthesisFocus');
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Inicializar tooltips de Bootstrap
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Inicializar Firebase
+            try {
+                const app = firebase.initializeApp(firebaseConfig);
+                db = firebase.getFirestore(app);
+                auth = firebase.getAuth(app);
+            } catch (error) {
+                console.error("Error al inicializar Firebase:", error);
+            }
+
+            // Autenticar al usuario
+            try {
+                if (initialAuthToken) {
+                    await firebase.signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await firebase.signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Error en la autenticación:", error);
+            }
+            
+            // Esperar a que la autenticación esté lista para obtener el userId
+            firebase.onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log(`Usuario autenticado con ID: ${userId}`);
+
+                    // Configuración de Firestore
+                    const promptsCollection = firebase.collection(db, `/artifacts/${appId}/users/${userId}/prompts`);
+
+                    // Escuchar cambios en las configuraciones de prompts en tiempo real
+                    firebase.onSnapshot(promptsCollection, (snapshot) => {
+                        savedConfigs = [];
+                        snapshot.forEach((doc) => {
+                            savedConfigs.push({ id: doc.id, ...doc.data() });
+                        });
+                        loadSavedConfigs();
+                    });
+                }
+            });
+
+            // Event listeners
+            toneSelect.addEventListener('change', function() {
+                if (this.value === 'other') {
+                    otherToneContainer.style.display = 'block';
+                } else {
+                    otherToneContainer.style.display = 'none';
+                }
+            });
+
+            temperatureSlider.addEventListener('input', function() {
+                temperatureValue.textContent = 'Valor: ' + this.value;
+            });
+            
+            topPSlider.addEventListener('input', function() {
+                topPValue.textContent = 'Valor: ' + this.value;
+            });
+            
+            document.getElementById('addChapterBtn').addEventListener('click', addChapter);
+            document.getElementById('saveConfig').addEventListener('click', saveConfiguration);
+            document.getElementById('resetConfig').addEventListener('click', resetConfiguration);
+            document.getElementById('generatePromptBtn').addEventListener('click', generatePrompt);
+            document.getElementById('copyPromptBtn').addEventListener('click', copyPrompt);
+            document.getElementById('savePromptBtn').addEventListener('click', savePrompt);
+            document.getElementById('presetSelect').addEventListener('change', applyPreset);
+        });
+        
+        // Funciones
+        function addChapter() {
+            const chapterList = document.getElementById('chapterList');
+            const chapterCount = chapterList.children.length + 1;
+            const chapterId = 'chapter-' + Date.now();
+            
+            const newChapter = document.createElement('div');
+            newChapter.className = 'chapter-item';
+            newChapter.id = chapterId;
+            newChapter.innerHTML = `
+                <div class="chapter-actions">
+                    <button class="btn btn-sm btn-outline-primary me-1 edit-chapter" onclick="moveChapterUp('${chapterId}')">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary me-1 edit-chapter" onclick="moveChapterDown('${chapterId}')">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeChapter('${chapterId}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <h6 class="mb-1">Capítulo ${chapterCount}</h6>
+                <div class="mb-2">
+                    <input type="text" class="form-control form-control-sm" placeholder="Título del capítulo" 
+                        onchange="updateChapterTitle('${chapterId}', this.value)">
+                </div>
+                <textarea class="form-control form-control-sm" rows="3" 
+                    placeholder="Objetivos específicos de este capítulo..." 
+                    onchange="updateChapterContent('${chapterId}', this.value)"></textarea>
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-info text-white" onclick="generateChapterReportPrompt('${chapterId}')">
+                        <i class="fas fa-file-alt me-1"></i>Generar Informe
+                    </button>
+                    <button class="btn btn-sm btn-success text-white" onclick="generateChapterSummaryPrompt('${chapterId}')">
+                        <i class="fas fa-file-export me-1"></i>Generar Resumen
+                    </button>
+                </div>
+            `;
+            chapterList.appendChild(newChapter);
+            currentChapters.push({
+                id: chapterId,
+                title: '',
+                content: ''
+            });
+        }
+        
+        window.generateChapterReportPrompt = function(chapterId) {
+            const chapter = currentChapters.find(ch => ch.id === chapterId);
+            if (!chapter) return;
+            
+            const promptText = `ROL: Experto en análisis de datos, con habilidades para generar informes detallados.
+
+OBJETIVO: Analizar el siguiente objetivo de investigación del capítulo "${chapter.title || 'Sin título'}" y generar un informe técnico exhaustivo que incluya:
+1.  **Análisis de Datos**: Basado en el contenido proporcionado.
+2.  **Gráficos y Tablas**: Genera la información en formatos de tabla y describe gráficos representativos de los datos.
+3.  **Conclusiones Específicas**: Resumen de los hallazgos clave.
+
+DOCUMENTACIÓN DE BASE:
+"${chapter.content || 'Sin contenido'}"
+
+INSTRUCCIONES:
+-   El informe debe ser completo, estructurado y utilizar un lenguaje técnico apropiado.
+-   No te inventes datos, utiliza el contenido proporcionado como única fuente de información.
+
+TONO: técnico.
+FORMATO: Informe en formato Markdown con encabezados, listas y tablas.
+
+PARÁMETROS TÉCNICOS:
+- Temperature: ${temperatureSlider.value}
+- Top P: ${topPSlider.value}
+- Max Tokens: ${document.getElementById('maxTokensInput').value}`;
+
+            document.getElementById('generatedPrompt').textContent = promptText;
+            document.getElementById('generatedPrompt').classList.remove('d-none');
+            document.getElementById('generatedPrompt').scrollIntoView({ behavior: 'smooth' });
+            showToast('Prompt para informe de capítulo generado', 'info');
+        }
+
+        window.generateChapterSummaryPrompt = function(chapterId) {
+            const chapter = currentChapters.find(ch => ch.id === chapterId);
+            if (!chapter) return;
+
+            const promptText = `ROL: Experto en síntesis de información y extracción de ideas clave.
+
+OBJETIVO: Analizar el contenido del capítulo "${chapter.title || 'Sin título'}" y generar un resumen ejecutivo conciso, destacando las ideas clave y una conclusión del capítulo.
+
+DOCUMENTACIÓN DE BASE:
+"${chapter.content || 'Sin contenido'}"
+
+INSTRUCCIONES:
+-   El resumen debe ser breve y al punto.
+-   Utiliza un lenguaje claro y directo, ideal para un lector que necesita entender rápidamente el contenido.
+
+TONO: profesional.
+FORMATO: Resumen Ejecutivo en texto plano.
+
+PARÁMETROS TÉCNICOS:
+- Temperature: ${temperatureSlider.value}
+- Top P: ${topPSlider.value}
+- Max Tokens: ${document.getElementById('maxTokensInput').value}`;
+        
+            document.getElementById('generatedPrompt').textContent = promptText;
+            document.getElementById('generatedPrompt').classList.remove('d-none');
+            document.getElementById('generatedPrompt').scrollIntoView({ behavior: 'smooth' });
+            showToast('Prompt para resumen de capítulo generado', 'info');
+        }
+
+        window.removeChapter = function(chapterId) {
+            const chapterElement = document.getElementById(chapterId);
+            if (chapterElement) {
+                chapterElement.remove();
+                currentChapters = currentChapters.filter(ch => ch.id !== chapterId);
+                renumberChapters();
+            }
+        };
+        
+        window.moveChapterUp = function(chapterId) {
+            const chapterElement = document.getElementById(chapterId);
+            const prevElement = chapterElement.previousElementSibling;
+            if (prevElement) {
+                chapterElement.parentNode.insertBefore(chapterElement, prevElement);
+                renumberChapters();
+            }
+        };
+        
+        window.moveChapterDown = function(chapterId) {
+            const chapterElement = document.getElementById(chapterId);
+            const nextElement = chapterElement.nextElementSibling;
+            if (nextElement) {
+                chapterElement.parentNode.insertBefore(nextElement, chapterElement);
+                renumberChapters();
+            }
+        };
+        
+        function renumberChapters() {
+            const chapters = document.querySelectorAll('.chapter-item');
+            chapters.forEach((chapter, index) => {
+                const titleElement = chapter.querySelector('h6');
+                if (titleElement) {
+                    titleElement.textContent = `Capítulo ${index + 1}`;
+                }
+            });
+        }
+        
+        window.updateChapterTitle = function(chapterId, title) {
+            const chapter = currentChapters.find(ch => ch.id === chapterId);
+            if (chapter) {
+                chapter.title = title;
+            }
+        };
+        
+        window.updateChapterContent = function(chapterId, content) {
+            const chapter = currentChapters.find(ch => ch.id === chapterId);
+            if (chapter) {
+                chapter.content = content;
+            }
+        };
+        
+        async function saveConfiguration() {
+            const configName = promptNameInput.value || 'Configuración sin nombre';
+            const configDescription = document.getElementById('promptDescription').value;
+            const currentTone = toneSelect.value === 'other' ? otherToneInput.value : toneSelect.value;
+        
+            const config = {
+                name: configName,
+                description: configDescription,
+                role: document.getElementById('roleInput').value,
+                tone: currentTone,
+                objective: document.getElementById('objectiveInput').value,
+                scope: document.getElementById('scopeInput').value,
+                sequentiality: document.getElementById('sequentialityInput').value,
+                format: document.getElementById('formatInput').value,
+                temperature: temperatureSlider.value,
+                seed: document.getElementById('seedInput').value,
+                topP: topPSlider.value,
+                maxTokens: document.getElementById('maxTokensInput').value,
+                globalTitle: document.getElementById('globalAnalysisTitle').value,
+                synthesisFocus: synthesisFocusInput.value,
+                chapters: JSON.stringify(currentChapters), // Serializa el array a JSON string
+                timestamp: new Date().toISOString()
+            };
+            
+            try {
+                // Se usa el nombre del prompt como ID del documento para que sea más fácil de ubicar
+                await firebase.setDoc(firebase.doc(firebase.collection(db, `/artifacts/${appId}/users/${userId}/prompts`), configName), config);
+                showToast('Configuración guardada correctamente', 'success');
+            } catch (error) {
+                console.error("Error al guardar la configuración:", error);
+                showToast('Error al guardar la configuración', 'danger');
+            }
+        }
+        
+        function loadSavedConfigs() {
+            const configList = document.getElementById('configList');
+            if (!configList) return;
+            
+            configList.innerHTML = '';
+            
+            if (savedConfigs.length === 0) {
+                configList.innerHTML = '<p class="text-center">No hay configuraciones guardadas.</p>';
+                return;
+            }
+            
+            savedConfigs.forEach(config => {
+                const configElement = document.createElement('div');
+                configElement.className = 'saved-config';
+                configElement.innerHTML = `
+                    <h6>${config.name}</h6>
+                    <p class="small">${config.description || 'Sin descripción'}</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" onclick="loadConfiguration('${config.id}')">
+                            <i class="fas fa-file-import me-1"></i>Cargar
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteConfiguration('${config.id}')">
+                            <i class="fas fa-trash me-1"></i>Eliminar
+                        </button>
+                    </div>
+                `;
+                configList.appendChild(configElement);
+            });
+        }
+        
+        window.loadConfiguration = function(configId) {
+            const config = savedConfigs.find(c => c.id === configId);
+            if (!config) return;
+            
+            promptNameInput.value = config.name;
+            document.getElementById('promptDescription').value = config.description || '';
+            document.getElementById('roleInput').value = config.role || '';
+            toneSelect.value = config.tone;
+            if (toneSelect.value !== config.tone) {
+                toneSelect.value = 'other';
+                otherToneContainer.style.display = 'block';
+                otherToneInput.value = config.tone;
+            } else {
+                otherToneContainer.style.display = 'none';
+            }
+            document.getElementById('objectiveInput').value = config.objective || '';
+            document.getElementById('scopeInput').value = config.scope || '';
+            document.getElementById('sequentialityInput').value = config.sequentiality || '';
+            document.getElementById('formatInput').value = config.format || '';
+            temperatureSlider.value = config.temperature || 0.7;
+            document.getElementById('seedInput').value = config.seed || '';
+            topPSlider.value = config.topP || 0.9;
+            document.getElementById('maxTokensInput').value = config.maxTokens || 500;
+            document.getElementById('globalAnalysisTitle').value = config.globalTitle || '';
+            synthesisFocusInput.value = config.synthesisFocus || '';
+            
+            temperatureValue.textContent = 'Valor: ' + (config.temperature || 0.7);
+            topPValue.textContent = 'Valor: ' + (config.topP || 0.9);
+            
+            currentChapters = JSON.parse(config.chapters) || []; // Parsea el JSON string de vuelta a un array
+            renderChapters();
+            
+            showToast('Configuración cargada correctamente', 'success');
+        };
+        
+        function renderChapters() {
+            const chapterList = document.getElementById('chapterList');
+            chapterList.innerHTML = '';
+            currentChapters.forEach((chapter, index) => {
+                const newChapter = document.createElement('div');
+                newChapter.className = 'chapter-item';
+                newChapter.id = chapter.id;
+                newChapter.innerHTML = `
+                    <div class="chapter-actions">
+                        <button class="btn btn-sm btn-outline-primary me-1 edit-chapter" onclick="moveChapterUp('${chapter.id}')">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary me-1 edit-chapter" onclick="moveChapterDown('${chapter.id}')">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeChapter('${chapter.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <h6 class="mb-1">Capítulo ${index + 1}</h6>
+                    <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm" placeholder="Título del capítulo" 
+                            value="${chapter.title || ''}" onchange="updateChapterTitle('${chapter.id}', this.value)">
+                    </div>
+                    <textarea class="form-control form-control-sm" rows="3" 
+                        placeholder="Objetivos específicos de este capítulo..." 
+                        onchange="updateChapterContent('${chapter.id}', this.value)">${chapter.content || ''}</textarea>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-sm btn-info text-white" onclick="generateChapterReportPrompt('${chapter.id}')">
+                            <i class="fas fa-file-alt me-1"></i>Generar Informe
+                        </button>
+                        <button class="btn btn-sm btn-success text-white" onclick="generateChapterSummaryPrompt('${chapter.id}')">
+                            <i class="fas fa-file-export me-1"></i>Generar Resumen
+                        </button>
+                    </div>
+                `;
+                chapterList.appendChild(newChapter);
+            });
+        }
+        
+        async function deleteConfiguration(configId) {
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            document.getElementById('configNameToDelete').textContent = savedConfigs.find(c => c.id === configId)?.name || '';
+            modal.show();
+
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const confirmHandler = async function() {
+                try {
+                    await firebase.deleteDoc(firebase.doc(firebase.collection(db, `/artifacts/${appId}/users/${userId}/prompts`), configId));
+                    showToast('Configuración eliminada', 'info');
+                } catch (error) {
+                    console.error("Error al eliminar la configuración:", error);
+                    showToast('Error al eliminar la configuración', 'danger');
+                }
+                modal.hide();
+                confirmDeleteBtn.removeEventListener('click', confirmHandler);
+            };
+            confirmDeleteBtn.addEventListener('click', confirmHandler);
+        };
+        
+        function resetConfiguration() {
+            const modal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
+            modal.show();
+
+            const confirmResetBtn = document.getElementById('confirmResetBtn');
+            const confirmHandler = function() {
+                promptNameInput.value = '';
+                document.getElementById('promptDescription').value = '';
+                document.getElementById('roleInput').value = '';
+                toneSelect.value = 'profesional';
+                otherToneContainer.style.display = 'none';
+                otherToneInput.value = '';
+                document.getElementById('objectiveInput').value = '';
+                document.getElementById('scopeInput').value = '';
+                document.getElementById('sequentialityInput').value = '';
+                document.getElementById('formatInput').value = '';
+                temperatureSlider.value = 0.7;
+                document.getElementById('seedInput').value = '';
+                topPSlider.value = 0.9;
+                document.getElementById('maxTokensInput').value = 500;
+                document.getElementById('globalAnalysisTitle').value = '';
+                synthesisFocusInput.value = '';
+                
+                temperatureValue.textContent = 'Valor: 0.7';
+                topPValue.textContent = 'Valor: 0.9';
+                
+                currentChapters = [];
+                document.getElementById('chapterList').innerHTML = '';
+                
+                showToast('Campos restablecidos', 'info');
+                modal.hide();
+                confirmResetBtn.removeEventListener('click', confirmHandler);
+            };
+            confirmResetBtn.addEventListener('click', confirmHandler);
+        };
+        
+        function applyPreset() {
+            const preset = document.getElementById('presetSelect').value;
+            otherToneContainer.style.display = 'none';
+            
+            switch(preset) {
+                case 'technical':
+                    temperatureSlider.value = 0.1;
+                    topPSlider.value = 0.3;
+                    toneSelect.value = 'técnico';
+                    temperatureValue.textContent = 'Valor: 0.1';
+                    topPValue.textContent = 'Valor: 0.3';
+                    break;
+                    
+                case 'creative':
+                    temperatureSlider.value = 0.9;
+                    topPSlider.value = 1.0;
+                    toneSelect.value = 'creativo';
+                    temperatureValue.textContent = 'Valor: 0.9';
+                    topPValue.textContent = 'Valor: 1.0';
+                    break;
+                    
+                case 'research':
+                    temperatureSlider.value = 0.3;
+                    topPSlider.value = 0.5;
+                    toneSelect.value = 'académico';
+                    temperatureValue.textContent = 'Valor: 0.3';
+                    topPValue.textContent = 'Valor: 0.5';
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        function generatePrompt() {
+            const selectedModel = document.querySelector('.model-btn.active').dataset.model;
+            const role = document.getElementById('roleInput').value;
+            const tone = toneSelect.value === 'other' ? otherToneInput.value : toneSelect.value;
+            const objective = document.getElementById('objectiveInput').value;
+            const scope = document.getElementById('scopeInput').value;
+            const sequentiality = document.getElementById('sequentialityInput').value;
+            const format = document.getElementById('formatInput').value;
+            const temperature = temperatureSlider.value;
+            const seed = document.getElementById('seedInput').value;
+            const topP = topPSlider.value;
+            const maxTokens = document.getElementById('maxTokensInput').value;
+            
+            let promptText = '';
+            
+            const isAdvancedTabActive = document.getElementById('advanced-tab').classList.contains('active');
+
+            if (isAdvancedTabActive && currentChapters.length > 0 && document.getElementById('autoSynthesisCheck').checked) {
+                const globalTitle = document.getElementById('globalAnalysisTitle').value;
+                const synthesisFocus = synthesisFocusInput.value;
+                
+                promptText = `ROL: Experto en síntesis de información compleja y generación de insights estratégicos.
+
+OBJETIVO: Generar un informe final que integre los hallazgos de los ${currentChapters.length} capítulos de investigación sobre ${globalTitle}. El informe debe incluir un Resumen Ejecutivo global, Conclusiones generales que capturen las interrelaciones entre los temas analizados, y Recomendaciones estratégicas desde el enfoque de: ${synthesisFocus}.
+
+DOCUMENTACIÓN DE BASE (Resúmenes Ejecutivos de cada Capítulo):
+`;
+
+                currentChapters.forEach((chapter, index) => {
+                    promptText += `\n- CAPÍTULO ${index + 1}: ${chapter.title || 'Sin título'}\n`;
+                    promptText += `  ${chapter.content || 'Sin contenido específico'}\n`;
+                });
+
+                promptText += `
+INSTRUCCIONES:
+1. Analiza las interconexiones, tensiones y oportunidades que surgen de la integración de todos los resúmenes.
+2. No introduzcas nueva información factual que no esté contenida en los resúmenes proporcionados.
+3. Las recomendaciones deben ser accionables, específicas y derivadas directamente del análisis integrado.
+${sequentiality ? '\nSECUENCIALIDAD: ' + sequentiality : ''}
+
+TONO: ${tone}.
+FORMATO: ${format}.
+
+PARÁMETROS TÉCNICOS:
+- Temperature: ${temperature}
+- Top P: ${topP}
+- ${seed ? 'Seed: ' + seed : ''}
+- Max Tokens: ${maxTokens}`;
+
+            } else {
+                promptText = `ROL: ${role}
+
+OBJETIVO: ${objective}
+
+ALCANCE: ${scope}
+${sequentiality ? '\nSECUENCIALIDAD: ' + sequentiality : ''}
+
+FORMATO DE SALIDA: ${format}
+
+TONO: ${tone}
+
+PARÁMETROS TÉCNICOS:
+- Temperature: ${temperature}
+- Top P: ${topP}
+- ${seed ? 'Seed: ' + seed : ''}
+- Max Tokens: ${maxTokens}`;
+            }
+            
+            const generatedPrompt = document.getElementById('generatedPrompt');
+            generatedPrompt.textContent = promptText;
+            generatedPrompt.classList.remove('d-none');
+            generatedPrompt.scrollIntoView({ behavior: 'smooth' });
+            showToast('Prompt generado', 'info');
+        }
+        
+        function copyPrompt() {
+            const promptText = document.getElementById('generatedPrompt').textContent;
+            navigator.clipboard.writeText(promptText).then(() => {
+                showToast('Prompt copiado al portapapeles', 'success');
+            }).catch(err => {
+                console.error('Error al copiar el texto: ', err);
+                showToast('Error al copiar', 'danger');
+            });
+        }
+
+        function savePrompt() {
+            const promptName = promptNameInput.value || 'Prompt';
+            const sanitizedName = promptName.trim().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-');
+            const fileName = `${sanitizedName}.txt`;
+            const promptText = document.getElementById('generatedPrompt').textContent;
+            const blob = new Blob([promptText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Prompt guardado como ${fileName}`, 'success');
+        }
+        
+        function showToast(message, type) {
+            const toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) return;
+            const toastElement = document.createElement('div');
+            toastElement.className = `toast align-items-center text-white bg-${type} border-0 show`;
+            toastElement.setAttribute('role', 'alert');
+            toastElement.setAttribute('aria-live', 'assertive');
+            toastElement.setAttribute('aria-atomic', 'true');
+            toastElement.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toastElement);
+            const bsToast = new bootstrap.Toast(toastElement);
+            bsToast.show();
+            setTimeout(() => toastElement.remove(), 3000);
+        }
+        
+        // Asignar funciones a window para que los botones con onclick funcionen
+        window.removeChapter = removeChapter;
+        window.moveChapterUp = moveChapterUp;
+        window.moveChapterDown = moveChapterDown;
+        window.updateChapterTitle = updateChapterTitle;
+        window.updateChapterContent = updateChapterContent;
+        window.loadConfiguration = loadConfiguration;
+        window.deleteConfiguration = deleteConfiguration;
+        window.generateChapterReportPrompt = generateChapterReportPrompt;
+        window.generateChapterSummaryPrompt = generateChapterSummaryPrompt;
+    </script>
 </body>
 </html>
